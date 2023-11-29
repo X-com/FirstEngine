@@ -1,107 +1,127 @@
 package opengl;
 
-import util.Config;
+import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.GLFWKeyCallback;
+import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.opengl.GL;
+
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class WindowGLFW {
 
     private long window;
-    private static boolean viewChanged;
-    private static boolean userShowAll = true;
+    private final GLFWKeyCallback keyCallback;
+    private boolean vSynch;
 
-    public WindowGLFW() {
+    public WindowGLFW(int width, int height, String title, boolean vsync) {
+        vSynch = vsync;
+
+        GLFWErrorCallback.createPrint(System.err).set();
         if (!glfwInit()) {
-            throw new RuntimeException("Failed to initialize GLFW");
+            throw new IllegalStateException("Unable to initialize GLFW");
         }
-//        glfwWindowHint(GLFW_SAMPLES, 4);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-//        glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
-//        glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-//        glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
-//        glfwWindowHint(GLFW_MOUSE_PASSTHROUGH, GLFW_TRUE);
-//        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-        window = glfwCreateWindow(Config.MAP_WIDTH, Config.MAP_HEIGHT, "Test", NULL, NULL);
-//        glfwSetWindowPos(window, Config.instance.mapTopLeftX, Config.instance.mapTopLeftY);
 
-//        ratio = (float) util.Config.instance.mapWidth / util.Config.instance.mapHeight;
+        GLCapabilities c = tempWindowForVersionGrab();
+        setOpenGLHints(c);
+        createWindow(width, height, title);
+        centerWindowOnScreen(width, height);
+
+        if (vsync) {
+            glfwSwapInterval(1);
+        }
+        setOpenGlContext(window);
+
+        keyCallback = createKeyMouseCallbacks();
+
+        glfwShowWindow(window);
+    }
+
+    private GLFWKeyCallback createKeyMouseCallbacks() {
+        final GLFWKeyCallback keyCallback;
+        keyCallback = new GLFWKeyCallback() {
+            @Override
+            public void invoke(long window, int key, int scancode, int action, int mods) {
+                if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+                    glfwSetWindowShouldClose(window, true);
+                }
+            }
+        };
+        glfwSetKeyCallback(window, keyCallback);
+        return keyCallback;
+    }
+
+    private static GLCapabilities tempWindowForVersionGrab() {
+        glfwDefaultWindowHints();
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+        long temp = glfwCreateWindow(1, 1, "", NULL, NULL);
+        glfwMakeContextCurrent(temp);
+        GL.createCapabilities();
+        GLCapabilities caps = GL.getCapabilities();
+        glfwDestroyWindow(temp);
+        return caps;
+    }
+
+    private static void setOpenGLHints(GLCapabilities c) {
+        if (c.OpenGL32) {
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+            glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+        } else if (c.OpenGL21) {
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+        } else {
+            throw new RuntimeException("OpenGL 3.2 nor OpenGL 2.1 is supported. Update graphics drivers");
+        }
+    }
+
+    private void centerWindowOnScreen(int width, int height) {
+        GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+        glfwSetWindowPos(window,
+                (vidmode.width() - width) / 2,
+                (vidmode.height() - height) / 2
+        );
+    }
+
+    private void setOpenGlContext(long window) {
+        glfwMakeContextCurrent(window);
+        GL.createCapabilities();
+    }
+
+    private void createWindow(int width, int height, String title) {
+        window = glfwCreateWindow(width, height, title, NULL, NULL);
         if (window == NULL) {
             glfwTerminate();
-            throw new RuntimeException("Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.");
+            throw new RuntimeException("Failed to create the GLFW window!");
         }
-        glfwMakeContextCurrent(window);
-        glfwSwapInterval(1);
-        GL.createCapabilities();
-        glfwShowWindow(window);
-        System.out.println("Using GL Version: " + glGetString(GL_VERSION));
-
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-
-        boolean running = true;
-
-        do {
-//            checkViewChange();
-
-//            window.swapBuffer();
-        } while (running && !shouldWindowClose());
-
-        glfwTerminate();
     }
 
-    public static void main(String[] args) {
-        new WindowGLFW();
-    }
-
-    public void swapBuffer() {
+    public void update() {
         glfwSwapBuffers(window); // Update Window
         glfwPollEvents(); // Key Mouse Input
     }
 
-    public boolean shouldWindowClose() {
+    public boolean isWindowClosing() {
         return glfwWindowShouldClose(window);
     }
 
-    public void show() {
-        try {
-            glfwShowWindow(window);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void hide() {
-        try {
-            glfwHideWindow(window);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void toggleShowAll() {
-        if (userShowAll) {
-            hide();
-            userShowAll = false;
+    public void setVSync(boolean vsync) {
+        vSynch = vsync;
+        if (vsync) {
+            glfwSwapInterval(1);
         } else {
-            show();
-            userShowAll = true;
+            glfwSwapInterval(0);
         }
     }
 
-    public static void viewChanged() {
-        viewChanged = true;
+    public boolean isVSyncEnabled() {
+        return vSynch;
     }
 
-    public void checkViewChange() {
-        if (viewChanged) {
-//            glfwSetWindowPos(window, util.Config.instance.mapTopLeftX, util.Config.instance.mapTopLeftY);
-//            glfwSetWindowSize(window, util.Config.instance.mapWidth, util.Config.instance.mapHeight);
-//            glViewport(0, 0, util.Config.instance.mapWidth, util.Config.instance.mapHeight);
-//            viewChanged = false;
-        }
+    public void destroy() {
+        glfwDestroyWindow(window);
+        keyCallback.free();
     }
 }

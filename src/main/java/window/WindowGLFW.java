@@ -1,10 +1,9 @@
-package opengl;
+package window;
 
 import org.lwjgl.glfw.GLFWErrorCallback;
-import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWVidMode;
-import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
@@ -12,44 +11,40 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 public class WindowGLFW {
 
     private long window;
-    private final GLFWKeyCallback keyCallback;
-    private boolean vSynch;
+    private final KeyInput keyCallback;
+    private final MouseInput mouseCallback;
+    private boolean vSync;
 
-    public WindowGLFW(int width, int height, String title, boolean vsync) {
-        vSynch = vsync;
+    public WindowGLFW(int width, int height, String title, boolean vSync) {
+        this.vSync = vSync;
 
         GLFWErrorCallback.createPrint(System.err).set();
         if (!glfwInit()) {
             throw new IllegalStateException("Unable to initialize GLFW");
         }
 
+        mouseCallback = new MouseInput();
+        keyCallback = new KeyInput();
+        setCallbacks();
+
         GLCapabilities c = tempWindowForVersionGrab();
         setOpenGLHints(c);
         createWindow(width, height, title);
         centerWindowOnScreen(width, height);
-
-        if (vsync) {
-            glfwSwapInterval(1);
-        }
         setOpenGlContext(window);
 
-        keyCallback = createKeyMouseCallbacks();
+        if (vSync) {
+            glfwSwapInterval(1);
+        }
+
+
 
         glfwShowWindow(window);
     }
 
-    private GLFWKeyCallback createKeyMouseCallbacks() {
-        final GLFWKeyCallback keyCallback;
-        keyCallback = new GLFWKeyCallback() {
-            @Override
-            public void invoke(long window, int key, int scancode, int action, int mods) {
-                if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-                    glfwSetWindowShouldClose(window, true);
-                }
-            }
-        };
+    private void setCallbacks() {
         glfwSetKeyCallback(window, keyCallback);
-        return keyCallback;
+        glfwSetMouseButtonCallback(window, mouseCallback);
     }
 
     private static GLCapabilities tempWindowForVersionGrab() {
@@ -101,6 +96,9 @@ public class WindowGLFW {
     public void update() {
         glfwSwapBuffers(window); // Update Window
         glfwPollEvents(); // Key Mouse Input
+        if(KeyInput.keys[GLFW_KEY_ESCAPE]){
+            close();
+        }
     }
 
     public boolean isWindowClosing() {
@@ -108,7 +106,7 @@ public class WindowGLFW {
     }
 
     public void setVSync(boolean vsync) {
-        vSynch = vsync;
+        vSync = vsync;
         if (vsync) {
             glfwSwapInterval(1);
         } else {
@@ -117,11 +115,10 @@ public class WindowGLFW {
     }
 
     public boolean isVSyncEnabled() {
-        return vSynch;
+        return vSync;
     }
 
-    public void destroy() {
+    public void close() {
         glfwDestroyWindow(window);
-        keyCallback.free();
     }
 }

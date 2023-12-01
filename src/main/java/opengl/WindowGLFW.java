@@ -27,11 +27,11 @@ public class WindowGLFW {
         setOpenGLHints(c);
         createWindow(width, height, title);
         centerWindowOnScreen(width, height);
+        setOpenGlContext(window);
 
         if (vsync) {
             glfwSwapInterval(1);
         }
-        setOpenGlContext(window);
 
         keyCallback = createKeyMouseCallbacks();
 

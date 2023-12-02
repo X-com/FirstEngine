@@ -23,22 +23,17 @@ public class WindowGLFW {
             throw new IllegalStateException("Unable to initialize GLFW");
         }
 
-        mouseCallback = new MouseInput();
-        keyCallback = new KeyInput();
-        setCallbacks();
-
         GLCapabilities c = tempWindowForVersionGrab();
         setOpenGLHints(c);
         createWindow(width, height, title);
         centerWindowOnScreen(width, height);
         setOpenGlContext(window);
-
         if (vSync) {
             glfwSwapInterval(1);
         }
-        setOpenGlContext(window);
-
-
+        mouseCallback = new MouseInput();
+        keyCallback = new KeyInput();
+        setCallbacks();
 
         glfwShowWindow(window);
     }
@@ -97,18 +92,15 @@ public class WindowGLFW {
     public void update() {
         glfwSwapBuffers(window); // Update Window
         glfwPollEvents(); // Key Mouse Input
-        if(KeyInput.keys[GLFW_KEY_ESCAPE]){
-            close();
-        }
     }
 
     public boolean isWindowClosing() {
         return glfwWindowShouldClose(window);
     }
 
-    public void setVSync(boolean vsync) {
-        vSync = vsync;
-        if (vsync) {
+    public void setVSync(boolean vSync) {
+        this.vSync = vSync;
+        if (vSync) {
             glfwSwapInterval(1);
         } else {
             glfwSwapInterval(0);

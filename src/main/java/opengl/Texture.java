@@ -2,9 +2,11 @@ package opengl;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
 import java.io.File;
 import java.io.IOException;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
@@ -33,6 +35,13 @@ public class Texture {
         textureId = glGenTextures();
         width = image.getWidth();
         height = image.getHeight();
+
+        if(image.getType() != BufferedImage.TYPE_INT_ARGB){
+            BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+            img.getGraphics().drawImage(image, 0, 0, null);
+            image = img;
+        }
+
         glBindTexture(GL_TEXTURE_2D, textureId);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);

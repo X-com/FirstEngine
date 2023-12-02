@@ -58,8 +58,10 @@ public class ModelConverter {
 
     private static void appendToFloatAccum(FloatAccum vbo, ObjLoader.Vertex v, ObjLoader.Group g, boolean texture, boolean norm){
         vbo.add(g.pos, v.pos*3, 3);
-        if(texture)
-            vbo.add(g.tex, v.tex*2, 2);
+        if(texture) {
+            vbo.add(g.tex[v.tex * 2]);
+            vbo.add(1-g.tex[v.tex*2+1]);
+        }
         if(norm)
             vbo.add(g.norm, v.norm*3, 3);
     }

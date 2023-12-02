@@ -36,6 +36,7 @@ public class WindowGLFW {
         if (vSync) {
             glfwSwapInterval(1);
         }
+        setOpenGlContext(window);
 
 
 

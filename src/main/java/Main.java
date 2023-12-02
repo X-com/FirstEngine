@@ -3,7 +3,6 @@ import file.ObjLoader;
 import opengl.*;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL33;
 import util.Config;
 import window.KeyInput;
 import window.WindowGLFW;
@@ -11,11 +10,7 @@ import window.WindowGLFW;
 import javax.imageio.ImageIO;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.util.Objects;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
@@ -46,22 +41,23 @@ public class Main {
         running = true;
         window = new WindowGLFW(Config.WIDTH, Config.HEIGHT, "Game", true, 3);
 
-        ObjLoader.Obj[] objects = ObjLoader.loadObjModel("models/stall.obj");
-
-        VertexArray vao = ModelConverter.extractFromObjs(objects, true, false);
-
+        ObjLoader.Obj obj = ObjLoader.loadObjModel("models/alfa174.obj");
+        VertexArray vao = ModelConverter.extractFromObjs(obj, false, true);
         Shader shader = new Shader("shader/test.vert", "shader/test.frag");
 
         shader.bind();
 
-        Matrix4f mvp = new Matrix4f().ortho(-10, 10, -10, 10, 10, -10);
+        Matrix4f mvp = new Matrix4f().ortho(-100, 100, -100, 100, 100, -100)
+                .rotate((float) (Math.PI/2), 0, 0, 1)
+                .rotate((float) (Math.PI/2), 0, 1, 0)
+                .translate(0, 0, 0);
 
         Texture texture = new Texture(img, true);
         glEnable(GL_DEPTH_TEST);
         do {
             glClear(GL11.GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             texture.bind(0);
-            mvp.rotate(0.01f, 0, 1, 0);
+            mvp.rotate(0.01f, 0, 0, 1);
             shader.setUniformMat4f("u_mvp", mvp);
             shader.setUniform1i("tex", 0);
 

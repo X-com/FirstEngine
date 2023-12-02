@@ -7,86 +7,103 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class ObjLoader {
-    public static Obj[] loadObjModel(String path){
-        Obj[] objects = null;
+    public static Obj loadObjModel(String path){
+        Obj obj = null;
         try {
             InputStream is = Shader.class.getClassLoader().getResourceAsStream(path);
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
-
-            objects = extractData(br);
+            obj = extractData(br);
         } catch (IOException e){
             e.printStackTrace();
         }
-        return objects;
+        return obj;
     }
 
-    private static Obj[] extractData(BufferedReader br) throws IOException {
-        ArrayList<Obj> objects = new ArrayList<>();
+    private static Obj extractData(BufferedReader br) throws IOException {
+        ArrayList<SubObj> subObjs = new ArrayList<>();
+        ArrayList<Group> subObjGroups = new ArrayList<>();
+        ArrayList<Group> outerScopeGroups = new ArrayList<>();
+        ScopeData[] data = {new ScopeData(), new ScopeData(), new ScopeData(), new ScopeData()};
 
-        ArrayList<Group> objectData = new ArrayList<>();
-        ArrayList<Surface> surfaces = new ArrayList<>();
-
-        FloatAccum pos = new FloatAccum();
-        FloatAccum tex = new FloatAccum();
-        FloatAccum norm = new FloatAccum();
-
-        StringBuilder objName = new StringBuilder();
-        StringBuilder groupName = new StringBuilder();
-
-        Group g;
-
+        int scope = 0;
 
         for(String line = br.readLine(); line != null; line = br.readLine()){
-            if(line.startsWith("#")) continue;
-            String[] split = line.split(" ");
+            String[] split = line.split("\\s+");
+
+            StringBuilder name;
+            Group group;
 
             switch (split[0]){
-                case "o":
-                    if(!pos.empty()){
-                        g = createGroup(pos, tex, norm, surfaces, groupName.toString());
-                        objectData.add(g);
-                    }
-                    groupName = new StringBuilder();
+                case "o"://everything after this point is in an object
+                    switch (scope){
 
-                    if(!objectData.isEmpty()) {
-                        objects.add(new Obj(objectData.toArray(new Group[0]), objName.toString()));
-                        objectData = new ArrayList<>();
-                    }
-                    objName = new StringBuilder();
+                        case 1://first object, with group before
+                            group = new Group(data[1]);
+                            data[1].clear();
+                            outerScopeGroups.add(group);
+                        case 0:
+                            break;
 
+                        case 3://new object with group from previous object
+                            group = new Group(data[3]);
+                            data[3].clear();
+                            subObjGroups.add(group);
+                        case 2://new object, with previous object
+                            SubObj newObject = new SubObj(data[2], subObjGroups.toArray(new Group[0]));
+                            subObjGroups.clear();;
+                            subObjs.add(newObject);
+                    }//in the case of first object no prior groups, do nothing
+
+                    name = new StringBuilder();
                     for (int i = 1; i < split.length; i++) {
-                        objName.append(split[i]).append(" ");
+                        name.append(split[i]);
                     }
+                    scope = 2;
+                    data[scope].name = name.toString();
                     break;
 
                 case "g":
-                    if(!pos.empty()) {
-                        g = createGroup(pos, tex, norm, surfaces, groupName.toString());
-                        objectData.add(g);
+                    switch (scope){
+                        case 0://first group outside object
+                            scope = 1;
+                        case 1://group outside object
+                            group = new Group(data[1]);
+                            data[1].clear();
+                            outerScopeGroups.add(group);
+                            break;
+                        case 2://first group inside object
+                            scope = 3;
+                            break;
+                        case 3://group inside object
+                            group = new Group(data[3]);
+                            data[3].clear();
+                            subObjGroups.add(group);
                     }
-                    groupName = new StringBuilder();
+                    name = new StringBuilder();
                     for (int i = 1; i < split.length; i++) {
-                        groupName.append(split[i]).append(" ");
+                        name.append(split[i]);
                     }
+                    data[scope].name = name.toString();
                     break;
 
                 case "v":
-                    pos.add(Float.parseFloat(split[1]));
-                    pos.add(Float.parseFloat(split[2]));
-                    pos.add(Float.parseFloat(split[3]));
+                    data[scope].pos.add(Float.parseFloat(split[1]));
+                    data[scope].pos.add(Float.parseFloat(split[2]));
+                    data[scope].pos.add(Float.parseFloat(split[3]));
                     break;
 
                 case "vt":
-                    tex.add(Float.parseFloat(split[1]));
-                    tex.add(Float.parseFloat(split[2]));
+                    data[scope].tex.add(Float.parseFloat(split[1]));
+                    data[scope].tex.add(Float.parseFloat(split[2]));
                     break;
 
                 case "vn":
-                    norm.add(Float.parseFloat(split[1]));
-                    norm.add(Float.parseFloat(split[2]));
-                    norm.add(Float.parseFloat(split[3]));
+                    data[scope].norm.add(Float.parseFloat(split[1]));
+                    data[scope].norm.add(Float.parseFloat(split[2]));
+                    data[scope].norm.add(Float.parseFloat(split[3]));
                     break;
 
                 case "f":
@@ -99,34 +116,88 @@ public class ObjLoader {
                         vertex.norm = triangleSplit.length==3?Integer.parseInt(triangleSplit[2])-1 : -1;
                         vertices[i-1] = vertex;
                     }
-                    surfaces.add(new Surface(vertices));
+                    data[scope].surfaces.add(new Surface(vertices));
                     break;
             }
         }
-        if(!pos.empty())
-            objectData.add(new Group(pos.getData(), tex.getData(), norm.getData(), surfaces.toArray(new Surface[0]), groupName.toString()));
+        Group group;
+        switch (scope){
+            case 0://nothing
+                break;
+            case 1://outer scope group
+                group = new Group(data[1]);
+                outerScopeGroups.add(group);
+                data[1].clear();
+                break;
 
-        if(!objectData.isEmpty())
-            objects.add(new Obj(objectData.toArray(new Group[0]), objName.toString()));
+            case 3://group inside object
+                group = new Group(data[3]);
+                subObjGroups.add(group);
+                data[3].clear();
+            case 2://object
+                SubObj obj = new SubObj(data[2], subObjGroups.toArray(new Group[0]));
+                data[2].clear();
+                subObjGroups.clear();
+                subObjs.add(obj);
+        }
 
-        return objects.toArray(new Obj[0]);
+        return new Obj(data[0], outerScopeGroups.toArray(new Group[0]), subObjs.toArray(new SubObj[0]));
     }
 
-    private static Group createGroup(FloatAccum pos, FloatAccum tex, FloatAccum norm, ArrayList<Surface> geometry, String name) {
-        Group g = new Group(pos.getData(), tex.getData(), norm.getData(), geometry.toArray(new Surface[0]), name);
-        pos.clear();
-        tex.clear();
-        norm.clear();
-        geometry.clear();
-        return g;
+    private static class ScopeData {
+        FloatAccum pos, tex, norm;
+        ArrayList<Surface> surfaces;
+        String name;
+        ScopeData(){
+            pos = new FloatAccum();
+            tex = new FloatAccum();
+            norm = new FloatAccum();
+            name = "";
+            surfaces = new ArrayList<>();
+        }
+
+        void clear(){
+            name = "";
+            pos.clear();
+            tex.clear();
+            norm.clear();
+            surfaces.clear();
+        }
+
+        boolean empty(){
+            return pos.empty() && tex.empty() && norm.empty() && surfaces.isEmpty() && Objects.equals(name, "");
+        }
     }
 
     public static class Obj {
-        public Group[] groups;
-        public String name;
-        public Obj(Group[] groups, String name){
+        public final float[] pos, tex, norm;
+        public final Surface[] surfaces;
+
+        public final Group[] groups;
+        public final SubObj[] subObjs;
+        Obj(ScopeData data, Group[] groups, SubObj[] subObjs){
+            this.pos = data.pos.getData();
+            this.tex = data.tex.getData();
+            this.norm = data.norm.getData();
+            this.surfaces = data.surfaces.toArray(new Surface[0]);
+            this.subObjs = subObjs;
             this.groups = groups;
-            this.name = name;
+        }
+    }
+
+    public static class SubObj {
+        public Group[] groups;
+
+        public final float[] pos, tex, norm;
+        public final Surface[] surfaces;
+        public String name;
+        SubObj(ScopeData data, Group[] groups){
+            this.groups = groups;
+            this.name = data.name;
+            this.pos = data.pos.getData();
+            this.tex = data.tex.getData();
+            this.norm = data.norm.getData();
+            this.surfaces = data.surfaces.toArray(new Surface[0]);
         }
     }
 
@@ -134,12 +205,12 @@ public class ObjLoader {
         public final float[] pos, tex, norm;
         public final Surface[] surfaces;
         public final String name;
-        public Group(float[] pos, float[] tex, float[] norm, Surface[] surfaces, String name){
-            this.pos = pos;
-            this.tex = tex;
-            this.norm = norm;
-            this.surfaces = surfaces;
-            this.name = name;
+        Group(ScopeData data){
+            this.pos = data.pos.getData();
+            this.tex = data.tex.getData();
+            this.norm = data.norm.getData();
+            this.surfaces = data.surfaces.toArray(new Surface[0]);
+            this.name = data.name;
         }
     }
 

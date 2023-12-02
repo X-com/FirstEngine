@@ -20,11 +20,15 @@ public class FloatAccum {
     }
 
     public void add(float[] ar, int start, int count){
-        if(len+count>=data.length){
+        while (len+count>=data.length){
             upsize();
         }
         System.arraycopy(ar, start, data, len, count);
         len += count;
+    }
+
+    public void add(float[] ar){
+        add(ar, 0, ar.length);
     }
 
     private void upsize(){

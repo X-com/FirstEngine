@@ -1,11 +1,11 @@
 package opengl;
 
-import static org.lwjgl.opengl.GL30.*;
+import static org.lwjgl.opengl.GL33.*;
 
 public class VertexArray {
     private int vao;
-    private VertexBuffer vb;
     private IndexBuffer indexBuffer;
+    private int attribPointer = 0;
 
     public VertexArray() {
         vao = glGenVertexArrays();
@@ -13,24 +13,16 @@ public class VertexArray {
     }
 
     public VertexArray addVertexBuffer(VertexBuffer vb, VertexBufferLayout layout) {
-        this.vb = vb;
         bind();
         vb.bind();
         int offset = 0;
         for (int i = 0; i < layout.size(); i++) {
-            glEnableVertexAttribArray(i);
+            glEnableVertexAttribArray(attribPointer+i);
             glVertexAttribPointer(i, layout.getCount(i), layout.getType(i), layout.getNormalized(i), layout.getStride(), offset);
             offset += layout.getOffset(i);
         }
+        attribPointer += layout.size();
         return this;
-    }
-
-    public void updateDynamicVertexBufferFloats() {
-        vb.updateDynamicVertices();
-    }
-
-    public float[] getDynamicVertexBufferFloats() {
-        return vb.getDynamicVertices();
     }
 
     public void setIndexBuffer(IndexBuffer ib) {

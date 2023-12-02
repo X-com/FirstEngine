@@ -76,4 +76,8 @@ public class VertexBuffer {
     public void dispose() {
         glDeleteBuffers(vbo);
     }
+
+    public int getId(){
+        return vbo;
+    }
 }

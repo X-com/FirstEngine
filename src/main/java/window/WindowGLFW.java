@@ -15,7 +15,7 @@ public class WindowGLFW {
     private final MouseInput mouseCallback;
     private boolean vSync;
 
-    public WindowGLFW(int width, int height, String title, boolean vSync) {
+    public WindowGLFW(int width, int height, String title, boolean vSync, int version) {
         this.vSync = vSync;
 
         GLFWErrorCallback.createPrint(System.err).set();
@@ -23,10 +23,11 @@ public class WindowGLFW {
             throw new IllegalStateException("Unable to initialize GLFW");
         }
 
-        GLCapabilities c = tempWindowForVersionGrab();
-        setOpenGLHints(c);
+
+        setOpenGLHints(version);
         createWindow(width, height, title);
         centerWindowOnScreen(width, height);
+
         setOpenGlContext(window);
         if (vSync) {
             glfwSwapInterval(1);
@@ -54,17 +55,17 @@ public class WindowGLFW {
         return caps;
     }
 
-    private static void setOpenGLHints(GLCapabilities c) {
-        if (c.OpenGL32) {
+    private static void setOpenGLHints(int version) {
+        if (version == 3) {
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-        } else if (c.OpenGL21) {
+        } else if (version == 2) {
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
         } else {
-            throw new RuntimeException("OpenGL 3.2 nor OpenGL 2.1 is supported. Update graphics drivers");
+            throw new RuntimeException("OpenGL 3.3 nor OpenGL 2.1 is supported. Update graphics drivers");
         }
     }
 

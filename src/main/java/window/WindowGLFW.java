@@ -4,6 +4,7 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
+import util.Config;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
@@ -14,6 +15,7 @@ public class WindowGLFW {
     private final KeyInput keyCallback;
     private final MouseInput mouseCallback;
     private boolean vSync;
+    private boolean anchored;
 
     public WindowGLFW(int width, int height, String title, boolean vSync, int version) {
         this.vSync = vSync;
@@ -22,8 +24,7 @@ public class WindowGLFW {
         if (!glfwInit()) {
             throw new IllegalStateException("Unable to initialize GLFW");
         }
-
-
+        anchored = false;
         setOpenGLHints(version);
         createWindow(width, height, title);
         centerWindowOnScreen(width, height);
@@ -32,11 +33,26 @@ public class WindowGLFW {
         if (vSync) {
             glfwSwapInterval(1);
         }
-        mouseCallback = new MouseInput();
+        mouseCallback = new MouseInput(window);
         keyCallback = new KeyInput();
         setCallbacks();
-
         glfwShowWindow(window);
+    }
+
+    public void setCursorAnchored(boolean anchored){
+        if(anchored){
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            glfwSetCursorPos(window, 0, 0);
+            mouseCallback.zeroMouse();
+        } else {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            glfwSetCursorPos(window, Config.WIDTH/2d, Config.HEIGHT/2d);
+        }
+        this.anchored = anchored;
+    }
+
+    public boolean isCursorAnchored() {
+        return anchored;
     }
 
     private void setCallbacks() {
@@ -93,6 +109,7 @@ public class WindowGLFW {
     public void update() {
         glfwSwapBuffers(window); // Update Window
         glfwPollEvents(); // Key Mouse Input
+        mouseCallback.update();
     }
 
     public boolean isWindowClosing() {
@@ -107,6 +124,8 @@ public class WindowGLFW {
             glfwSwapInterval(0);
         }
     }
+
+
 
     public boolean isVSyncEnabled() {
         return vSync;

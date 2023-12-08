@@ -40,6 +40,7 @@ public class Main {
 
         running = true;
         window = new WindowGLFW(Config.WIDTH, Config.HEIGHT, "Game", true, 3);
+        window.setCursorAnchored(true);
 
         ObjLoader.Obj obj = ObjLoader.loadObjModel("models/alfa174.obj");
         VertexArray vao = ModelConverter.extractFromObjs(obj, false, true);
@@ -54,10 +55,13 @@ public class Main {
 
         Texture texture = new Texture(img, true);
         glEnable(GL_DEPTH_TEST);
+
+
+
         do {
             glClear(GL11.GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             texture.bind(0);
-            mvp.rotate(0.01f, 0, 0, 1);
+
             shader.setUniformMat4f("u_mvp", mvp);
             shader.setUniform1i("tex", 0);
 

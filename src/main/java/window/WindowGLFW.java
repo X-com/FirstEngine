@@ -105,8 +105,7 @@ public class WindowGLFW {
         }
     }
 
-    public void update() {
-        glfwSwapBuffers(window); // Update Window
+    public void pollEvents() {
         glfwPollEvents(); // Key Mouse Input
         mouseCallback.update();
     }
@@ -124,7 +123,12 @@ public class WindowGLFW {
         }
     }
 
-
+    public void getSize(int[] dim){
+        int[] w = new int[1], h = new int[1];
+        glfwGetFramebufferSize(window, w, h);
+        dim[0] = w[0];
+        dim[1] = h[0];
+    }
 
     public boolean isVSyncEnabled() {
         return vSync;
@@ -132,5 +136,10 @@ public class WindowGLFW {
 
     public void close() {
         glfwDestroyWindow(window);
+        glfwTerminate();
+    }
+
+    public void swapBuffers() {
+        glfwSwapBuffers(window);
     }
 }

@@ -3,9 +3,6 @@ package window;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWMouseButtonCallbackI;
 
-import static org.lwjgl.glfw.GLFW.glfwGetCursorPos;
-import static org.lwjgl.glfw.GLFW.glfwSetCursorPos;
-
 public class MouseInput implements GLFWMouseButtonCallbackI {
 
     public static final boolean[] mouseButtons = new boolean[8];
@@ -21,9 +18,9 @@ public class MouseInput implements GLFWMouseButtonCallbackI {
         mouseButtons[button] = action == GLFW.GLFW_PRESS;
     }
 
-    public void update(){
+    public void update() {
         double[] xp = new double[1], yp = new double[1];
-        glfwGetCursorPos(window, xp, yp);
+        GLFW.glfwGetCursorPos(window, xp, yp);
         double x = xp[0],
                 y = yp[0];
         dx = (int) (x - MouseInput.x);

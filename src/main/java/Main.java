@@ -1,6 +1,5 @@
 import file.ModelConverter;
 import file.ObjLoader;
-import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 import render.Camera;
@@ -52,25 +51,18 @@ public class Main {
 
         shader.bind();
 
-        Matrix4f mvp = new Matrix4f().ortho(-100, 100, -100, 100, 100, -100)
-                .rotate((float) (Math.PI/2), 0, 0, 1)
-                .rotate((float) (Math.PI/2), 0, 1, 0)
-                .translate(0, 0, 0);
-
-        mvp = new Matrix4f().perspective((float)Math.PI/3, (float) Config.WIDTH /Config.HEIGHT, 0.1f, Float.POSITIVE_INFINITY)
-                .rotate((float) (Math.PI/2), 0, 0, 1)
-                .rotate((float) (Math.PI/2-0.01f), 0, 1, 0)
-                .translate(200, 0, 0);
-
-        Texture texture = new Texture(img, true);
+        Texture2D texture = new Texture2D(img);
         glEnable(GL_DEPTH_TEST);
-
-
-        Camera camera = new Camera((float) (60*Math.PI/180), 0.1f, 1000);
-        camera.moveForward(new Vector3f(100, 0, 0));
+        Camera camera = new Camera((float) (120*Math.PI/180), 0.1f, 1000);
+        Vector3f startPos = new Vector3f((float) (Math.random()*200-100), (float) (Math.random()*200-100), (float) (Math.random()*200-100));
+        startPos = new Vector3f(startPos).normalize().mul(100).add(startPos);
+        camera.goTo(startPos);
+        camera.lookAt(new Vector3f());
+        //camera.setDirection((float) (Math.PI), 0);
         shader.setUniformMat4f("u_mvp", camera.getMvp());
 
         do {
+            window.pollEvents();
             //mvp = mvp.translate(0, 1, 0);
             glClear(GL11.GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             texture.bind(0);
@@ -85,19 +77,16 @@ public class Main {
 
             glDrawElements(GL_TRIANGLES, vao.getIndexBuffer().getCount(), GL_UNSIGNED_INT, 0);
 
-            window.update();
-            if(Math.abs(MouseInput.dx)>500 || Math.abs(MouseInput.dy)>500){
-                System.out.printf("x (%d, %d)%n", MouseInput.x, MouseInput.y);
-                System.out.printf("dx (%d, %d)%n", MouseInput.dx, MouseInput.dy);
-            }
-
             checkAnchor();
             checkClose();
             handleMovement(camera);
-        } while (running && !window.isWindowClosing());
 
+            int[] dim = new int[2];
+            window.getSize(dim);
+            camera.setAspect((float)dim[0]/dim[1]);
+            window.swapBuffers();
+        } while (running && !window.isWindowClosing());
         window.close();
-        glfwTerminate();
     }
 
     private void checkClose(){
@@ -108,26 +97,31 @@ public class Main {
 
     private void handleMovement(Camera camera){
         if(window.isCursorAnchored()) {
+
             camera.rotate(MouseInput.dx / 500f, MouseInput.dy / 500f);
             float dx = 0, dy = 0, dz = 0;
+
             if(KeyInput.keys[GLFW_KEY_W]){
                 dz -= 1;
             }
             if(KeyInput.keys[GLFW_KEY_S]){
                 dz += 1;
             }
+
             if(KeyInput.keys[GLFW_KEY_A]){
                 dx -= 1;
             }
             if(KeyInput.keys[GLFW_KEY_D]){
                 dx += 1;
             }
-            if(KeyInput.keys[GLFW_KEY_SPACE]){
-                dy += 1;
-            }
+
             if(KeyInput.keys[GLFW_KEY_LEFT_SHIFT]){
                 dy -= 1;
             }
+            if(KeyInput.keys[GLFW_KEY_SPACE]){
+                dy += 1;
+            }
+
             camera.moveForward(new Vector3f(dx, dy, dz));
         }
     }

@@ -1,6 +1,6 @@
 package file;
 
-import opengl.Shader;
+import render.opengl.Shader;
 
 import java.io.BufferedReader;
 import java.io.IOException;

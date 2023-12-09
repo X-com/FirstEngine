@@ -1,4 +1,4 @@
-package opengl;
+package render.opengl;
 
 import java.util.ArrayList;
 import java.util.Arrays;

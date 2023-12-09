@@ -1,9 +1,9 @@
 package file;
 
-import opengl.IndexBuffer;
-import opengl.VertexArray;
-import opengl.VertexBuffer;
-import opengl.VertexBufferLayout;
+import render.opengl.IndexBuffer;
+import render.opengl.VertexArray;
+import render.opengl.VertexBuffer;
+import render.opengl.VertexBufferLayout;
 
 import java.util.*;
 

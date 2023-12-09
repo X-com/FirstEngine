@@ -1,4 +1,4 @@
-package opengl;
+package render.opengl;
 
 import java.nio.IntBuffer;
 

@@ -1,4 +1,4 @@
-package opengl;
+package render.opengl;
 
 import static org.lwjgl.opengl.GL33.*;
 

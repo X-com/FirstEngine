@@ -1,10 +1,15 @@
 import file.ModelConverter;
 import file.ObjLoader;
-import opengl.*;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
+import render.Camera;
+import render.opengl.Shader;
+import render.opengl.Texture;
+import render.opengl.VertexArray;
 import util.Config;
 import window.KeyInput;
+import window.MouseInput;
 import window.WindowGLFW;
 
 import javax.imageio.ImageIO;
@@ -13,8 +18,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Objects;
 
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
-import static org.lwjgl.glfw.GLFW.glfwTerminate;
+import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
 public class Main {
@@ -53,28 +57,43 @@ public class Main {
                 .rotate((float) (Math.PI/2), 0, 1, 0)
                 .translate(0, 0, 0);
 
+        mvp = new Matrix4f().perspective((float)Math.PI/3, (float) Config.WIDTH /Config.HEIGHT, 0.1f, Float.POSITIVE_INFINITY)
+                .rotate((float) (Math.PI/2), 0, 0, 1)
+                .rotate((float) (Math.PI/2-0.01f), 0, 1, 0)
+                .translate(200, 0, 0);
+
         Texture texture = new Texture(img, true);
         glEnable(GL_DEPTH_TEST);
 
 
+        Camera camera = new Camera((float) (60*Math.PI/180), 0.1f, 1000);
+        camera.moveForward(new Vector3f(100, 0, 0));
+        shader.setUniformMat4f("u_mvp", camera.getMvp());
 
         do {
+            //mvp = mvp.translate(0, 1, 0);
             glClear(GL11.GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             texture.bind(0);
+            //camera.rotate(0.01f, 0);
+            //camera.move(new Vector3f());
 
-            shader.setUniformMat4f("u_mvp", mvp);
-            shader.setUniform1i("tex", 0);
+            shader.setUniformMat4f("u_mvp", camera.getMvp());
+            //shader.setUniform1i("tex", 0);
 
             shader.bind();
             vao.bind();
 
             glDrawElements(GL_TRIANGLES, vao.getIndexBuffer().getCount(), GL_UNSIGNED_INT, 0);
 
-
-            //GLRenderer.draw(vao, vao.getIndexBuffer(), shader);
-
             window.update();
+            if(Math.abs(MouseInput.dx)>500 || Math.abs(MouseInput.dy)>500){
+                System.out.printf("x (%d, %d)%n", MouseInput.x, MouseInput.y);
+                System.out.printf("dx (%d, %d)%n", MouseInput.dx, MouseInput.dy);
+            }
+
+            checkAnchor();
             checkClose();
+            handleMovement(camera);
         } while (running && !window.isWindowClosing());
 
         window.close();
@@ -84,6 +103,44 @@ public class Main {
     private void checkClose(){
         if(KeyInput.keys[GLFW_KEY_ESCAPE]){
             running = false;
+        }
+    }
+
+    private void handleMovement(Camera camera){
+        if(window.isCursorAnchored()) {
+            camera.rotate(MouseInput.dx / 500f, MouseInput.dy / 500f);
+            float dx = 0, dy = 0, dz = 0;
+            if(KeyInput.keys[GLFW_KEY_W]){
+                dz -= 1;
+            }
+            if(KeyInput.keys[GLFW_KEY_S]){
+                dz += 1;
+            }
+            if(KeyInput.keys[GLFW_KEY_A]){
+                dx -= 1;
+            }
+            if(KeyInput.keys[GLFW_KEY_D]){
+                dx += 1;
+            }
+            if(KeyInput.keys[GLFW_KEY_SPACE]){
+                dy += 1;
+            }
+            if(KeyInput.keys[GLFW_KEY_LEFT_SHIFT]){
+                dy -= 1;
+            }
+            camera.moveForward(new Vector3f(dx, dy, dz));
+        }
+    }
+
+    private boolean kPressed = false;
+    private void checkAnchor(){
+        if(KeyInput.keys[GLFW_KEY_K]){
+            if(!kPressed) {
+                kPressed = true;
+                window.setCursorAnchored(!window.isCursorAnchored());
+            }
+        } else {
+            kPressed = false;
         }
     }
 }

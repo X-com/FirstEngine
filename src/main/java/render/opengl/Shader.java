@@ -1,4 +1,4 @@
-package opengl;
+package render.opengl;
 
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryUtil;

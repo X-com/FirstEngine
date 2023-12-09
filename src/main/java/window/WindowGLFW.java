@@ -42,11 +42,10 @@ public class WindowGLFW {
     public void setCursorAnchored(boolean anchored){
         if(anchored){
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            glfwSetCursorPos(window, 0, 0);
-            mouseCallback.zeroMouse();
+            //glfwSetCursorPos(window, 0, 0);
         } else {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-            glfwSetCursorPos(window, Config.WIDTH/2d, Config.HEIGHT/2d);
+            //glfwSetCursorPos(window, Config.WIDTH/2d, Config.HEIGHT/2d);
         }
         this.anchored = anchored;
     }

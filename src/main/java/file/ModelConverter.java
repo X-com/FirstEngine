@@ -10,7 +10,7 @@ import java.util.*;
 public class ModelConverter {
     public static VertexArray extractFromObj(ObjComponent obj, boolean includeTexture, boolean includeNormals) {
         //put all vertices into a hashmap
-        Map<ObjComponent.Vertex, Integer> vertexSet = new HashMap();
+        Map<ObjComponent.Vertex, Integer> vertexSet = new HashMap<>();
         IntAccum indexAccum = new IntAccum();
         extractVerticesAndIndexes(vertexSet, indexAccum, obj);
 
@@ -43,7 +43,9 @@ public class ModelConverter {
             i += 3;
 
             if (includeTexture) {
-                System.arraycopy(obj.tex, v.tex * 2, vertexBuffer, i, 2);
+                vertexBuffer[i] = obj.tex[v.tex*2];
+                vertexBuffer[i+1] = 1-obj.tex[v.tex*2+1];
+                //System.arraycopy(obj.tex, v.tex * 2, vertexBuffer, i, 2);
                 i += 2;
             }
 

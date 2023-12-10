@@ -46,8 +46,8 @@ public class Main {
         window = new WindowGLFW(Config.WIDTH, Config.HEIGHT, "Game", true, 3);
         window.setCursorAnchored(true);
 
-        ObjComponent obj = ObjLoader.loadObjModel("models/alfa174.obj");
-        VertexArray vao = ModelConverter.extractFromObj(obj, false, true);
+        ObjComponent obj = ObjLoader.loadObjModel("models/stall.obj");
+        VertexArray vao = ModelConverter.extractFromObj(obj, true, true);
         Shader shader = new Shader("shader/test.vert", "shader/test.frag");
 
         shader.bind();
@@ -55,26 +55,24 @@ public class Main {
         Texture texture = new Texture(img, true);
         glEnable(GL_DEPTH_TEST);
         Camera camera = new Camera((float) (120*Math.PI/180), 0.1f, 1000);
-        Vector3f startPos = new Vector3f((float) (Math.random()*200-100), (float) (Math.random()*200-100), (float) (Math.random()*200-100));
-        startPos = new Vector3f(startPos).normalize().mul(100).add(startPos);
+        Vector3f startPos = new Vector3f((float) (Math.random()*2-1), (float) (Math.random()*2-1), (float) (Math.random()*2-1));
+        startPos = new Vector3f(startPos).normalize().mul(4).add(startPos);
         camera.goTo(startPos);
         camera.lookAt(new Vector3f());
         shader.setUniformMat4f("u_mvp", camera.getMvp());
-
+        long lastTime = System.nanoTime();
+        int count = 0;
         do {
             window.pollEvents();
-            //mvp = mvp.translate(0, 1, 0);
+            count++;
             glClear(GL11.GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             texture.bind(0);
-            //camera.rotate(0.01f, 0);
-            //camera.move(new Vector3f());
 
             shader.setUniformMat4f("u_mvp", camera.getMvp());
-            //shader.setUniform1i("tex", 0);
+            shader.setUniform1i("tex", 0);
 
             shader.bind();
             vao.bind();
-
             glDrawElements(GL_TRIANGLES, vao.getIndexBuffer().getCount(), GL_UNSIGNED_INT, 0);
 
             checkAnchor();
@@ -85,6 +83,12 @@ public class Main {
             window.getSize(dim);
             camera.setAspect((float)dim[0]/dim[1]);
             window.swapBuffers();
+            long now = System.nanoTime();
+            if(now-lastTime>1000000000){
+                System.out.printf("%.3fms%n", (now-lastTime)/1e6/count);
+                lastTime = now;
+                count = 0;
+            }
         } while (running && !window.isWindowClosing());
         window.close();
     }
@@ -121,8 +125,8 @@ public class Main {
             if(KeyInput.keys[GLFW_KEY_SPACE]){
                 dy += 1;
             }
-
-            camera.moveForward(new Vector3f(dx, dy, dz));
+            float v = 0.2f;
+            camera.moveForward(new Vector3f(dx, dy, dz).mul(v));
         }
     }
 

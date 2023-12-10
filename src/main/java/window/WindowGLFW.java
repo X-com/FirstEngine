@@ -30,12 +30,14 @@ public class WindowGLFW {
         centerWindowOnScreen(width, height);
 
         setOpenGlContext(window);
+        glfwFocusWindow(window);
         if (vSync) {
             glfwSwapInterval(1);
         }
         mouseCallback = new MouseInput(window);
         keyCallback = new KeyInput();
         setCallbacks();
+        mouseCallback.onFocus();
         glfwShowWindow(window);
     }
 
@@ -57,6 +59,9 @@ public class WindowGLFW {
     private void setCallbacks() {
         glfwSetKeyCallback(window, keyCallback);
         glfwSetMouseButtonCallback(window, mouseCallback);
+        glfwSetWindowFocusCallback(window, ((window1, focused) -> {
+            if(focused) mouseCallback.onFocus();
+        }));
     }
 
     private static GLCapabilities tempWindowForVersionGrab() {

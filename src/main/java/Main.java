@@ -1,4 +1,5 @@
 import file.ModelConverter;
+import file.ObjComponent;
 import file.ObjLoader;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
@@ -45,20 +46,19 @@ public class Main {
         window = new WindowGLFW(Config.WIDTH, Config.HEIGHT, "Game", true, 3);
         window.setCursorAnchored(true);
 
-        ObjLoader.Obj obj = ObjLoader.loadObjModel("models/alfa174.obj");
-        VertexArray vao = ModelConverter.extractFromObjs(obj, false, true);
+        ObjComponent obj = ObjLoader.loadObjModel("models/alfa174.obj");
+        VertexArray vao = ModelConverter.extractFromObj(obj, false, true);
         Shader shader = new Shader("shader/test.vert", "shader/test.frag");
 
         shader.bind();
 
-        Texture2D texture = new Texture2D(img);
+        Texture texture = new Texture(img, true);
         glEnable(GL_DEPTH_TEST);
         Camera camera = new Camera((float) (120*Math.PI/180), 0.1f, 1000);
         Vector3f startPos = new Vector3f((float) (Math.random()*200-100), (float) (Math.random()*200-100), (float) (Math.random()*200-100));
         startPos = new Vector3f(startPos).normalize().mul(100).add(startPos);
         camera.goTo(startPos);
         camera.lookAt(new Vector3f());
-        //camera.setDirection((float) (Math.PI), 0);
         shader.setUniformMat4f("u_mvp", camera.getMvp());
 
         do {

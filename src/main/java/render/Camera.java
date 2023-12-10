@@ -51,11 +51,6 @@ public class Camera {
         float yaw = (float) (-Math.atan2(diff.z, -diff.x)+3*Math.PI/2);
         float pitch = -Math.atan2(diff.y, Math.sqrt(diff.z*diff.z+diff.x*diff.x));
         setDirection(yaw, pitch);
-
-        /*Matrix4f mvp = getMvp();
-        Vector3f dir = new Vector3f(0, 0, -1);
-        mvp.transformDirection(dir);
-        System.out.println(dir.normalize().dot(diff.normalize()));*/
     }
 
     //moves in forward direction

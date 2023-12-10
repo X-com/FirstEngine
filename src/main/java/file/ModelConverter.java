@@ -8,130 +8,60 @@ import render.opengl.VertexBufferLayout;
 import java.util.*;
 
 public class ModelConverter {
-    public static VertexArray extractFromObjs(ObjLoader.Obj obj, boolean includeTexture, boolean includeNormals){
+    public static VertexArray extractFromObj(ObjComponent obj, boolean includeTexture, boolean includeNormals) {
         //put all vertices into a hashmap
-        Map<ObjLoader.Vertex, Integer> vertexSet = new HashMap();
-        int vertIndex = 0;
-        FloatAccum posTemp = new FloatAccum(),
-                texTemp = new FloatAccum(),
-                normTemp = new FloatAccum();
+        Map<ObjComponent.Vertex, Integer> vertexSet = new HashMap();
+        IntAccum indexAccum = new IntAccum();
+        extractVerticesAndIndexes(vertexSet, indexAccum, obj);
 
-        posTemp.add(obj.pos);
-        texTemp.add(obj.tex);
-        normTemp.add(obj.norm);
-
-        for(ObjLoader.Surface surface : obj.surfaces){
-            for(ObjLoader.Vertex vertex : surface.vertices){
-                vertexSet.put(vertex, vertIndex++);//0
-            }
-        }
-
-        for(ObjLoader.Group group : obj.groups){
-            for(ObjLoader.Surface surface : group.surfaces){
-                for(ObjLoader.Vertex vertex : surface.vertices){
-                    vertexSet.put(vertex, vertIndex++);//1
-                }
-            }
-            posTemp.add(group.pos);
-            texTemp.add(group.tex);
-            normTemp.add(group.norm);
-        }
-
-        for(ObjLoader.SubObj subObj : obj.subObjs){
-            posTemp.add(subObj.pos);
-            texTemp.add(subObj.tex);
-            normTemp.add(subObj.norm);
-
-            for(ObjLoader.Surface surface : subObj.surfaces){
-                for(ObjLoader.Vertex vertex : surface.vertices){
-                    vertexSet.put(vertex, vertIndex++);//2
-                }
-            }
-
-            for(ObjLoader.Group group : subObj.groups){
-                posTemp.add(group.pos);
-                texTemp.add(group.tex);
-                normTemp.add(group.norm);
-                for(ObjLoader.Surface surface : group.surfaces){
-                    for(ObjLoader.Vertex vertex : surface.vertices){
-                        vertexSet.put(vertex, vertIndex++);//3
-                    }
-                }
-            }
-        }
-
-        float[] pos = posTemp.getData(),
-                tex = texTemp.getData(),
-                norm = normTemp.getData();
-
-        int mul = 3 + (includeTexture?2:0) + (includeNormals?3:0);
-        float[] vboAr = new float[vertexSet.size()*mul];
-
-        for(Map.Entry<ObjLoader.Vertex, Integer> vertexEntry : vertexSet.entrySet()){
-            int i = vertexEntry.getValue();
-            ObjLoader.Vertex v = vertexEntry.getKey();
-
-            int j = i*mul;
-            vboAr[j++] = pos[v.pos*3];
-            vboAr[j++] = pos[v.pos*3+1];
-            vboAr[j++] = pos[v.pos*3+2];
-
-            if(includeTexture) {
-                vboAr[j++] = tex[v.tex*2];
-                vboAr[j++] = 1-tex[v.tex*2 + 1];
-            }
-            if(includeNormals) {
-                vboAr[j++] = norm[v.norm*3];
-                vboAr[j++] = norm[v.norm*3+1];
-                vboAr[j++] = norm[v.norm*3+2];
-            }
-        }
-
-        IntAccum tempIbo = new IntAccum();
-
-        for(ObjLoader.Surface surface : obj.surfaces){
-            appendSurface(surface, tempIbo, vertexSet);
-        }
-
-        for(ObjLoader.Group group : obj.groups){
-            for(ObjLoader.Surface surface : group.surfaces){
-                appendSurface(surface, tempIbo, vertexSet);
-            }
-        }
-
-        for(ObjLoader.SubObj subObj : obj.subObjs) {
-            for (ObjLoader.Surface surface : subObj.surfaces) {
-                appendSurface(surface, tempIbo, vertexSet);
-            }
-
-            for (ObjLoader.Group group : subObj.groups) {
-                for (ObjLoader.Surface surface : group.surfaces) {
-                    appendSurface(surface, tempIbo, vertexSet);
-                }
-            }
-        }
-
+        float[] vertices = assembleVertexBuffer(obj, vertexSet, includeTexture, includeNormals);
+        int[] indexes = indexAccum.getData();
 
         VertexArray va = new VertexArray();
-        VertexBufferLayout layout = new VertexBufferLayout();
-        layout.addFloat(3);//pos
-        if(includeTexture)
-            layout.addFloat(2);//tex
-        if(includeNormals)
-            layout.addFloat(3);//norm
 
-        VertexBuffer vbo = new VertexBuffer(vboAr);
-        IndexBuffer ibo = new IndexBuffer(tempIbo.getData());
-        va.addVertexBuffer(vbo, layout);
-        va.setIndexBuffer(ibo);
+        VertexBuffer vb = new VertexBuffer(vertices);
+        VertexBufferLayout layout = new VertexBufferLayout();
+        layout.addFloat(3);
+        if(includeTexture) layout.addFloat(2);
+        if(includeNormals) layout.addFloat(3);
+        va.addVertexBuffer(vb, layout);
+
+        IndexBuffer ib = new IndexBuffer(indexes);
+        va.setIndexBuffer(ib);
 
         return va;
     }
+    private static float[] assembleVertexBuffer(ObjComponent obj, Map<ObjComponent.Vertex, Integer> vertexSet, boolean includeTexture, boolean includeNormals){
+        int len = 3 + (includeTexture ? 2 : 0) + (includeNormals ? 3 : 0);
+        float[] vertexBuffer = new float[vertexSet.size() * len];
 
-    private static void appendSurface(ObjLoader.Surface surface, IntAccum tempIbo, Map<ObjLoader.Vertex, Integer> vertexSet) {
-        if(surface.vertices.length==3)
-            for(ObjLoader.Vertex vertex : surface.vertices){
-                tempIbo.add(vertexSet.get(vertex));
+        for (Map.Entry<ObjComponent.Vertex, Integer> entry : vertexSet.entrySet()) {
+            int i = entry.getValue() * len;
+            ObjComponent.Vertex v = entry.getKey();
+
+            System.arraycopy(obj.pos, v.pos * 3, vertexBuffer, i, 3);
+            i += 3;
+
+            if (includeTexture) {
+                System.arraycopy(obj.tex, v.tex * 2, vertexBuffer, i, 2);
+                i += 2;
             }
+
+            if (includeNormals) {
+                System.arraycopy(obj.norm, v.norm * 3, vertexBuffer, i, 3);
+            }
+        }
+        return vertexBuffer;
+    }
+    private static void extractVerticesAndIndexes(Map<ObjComponent.Vertex, Integer> vertexSet, IntAccum indexBuffer, ObjComponent obj){
+        for(ObjComponent.Surface face : obj.faces){
+            for(ObjComponent.Vertex v : face.vertices){
+                vertexSet.putIfAbsent(v, vertexSet.size());
+                indexBuffer.add(vertexSet.get(v));
+            }
+        }
+        for(ObjComponent subObj : obj.subObj){
+            extractVerticesAndIndexes(vertexSet, indexBuffer, subObj);
+        }
     }
 }

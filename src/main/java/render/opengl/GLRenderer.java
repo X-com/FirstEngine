@@ -49,7 +49,7 @@ public class GLRenderer {
      * @param cL         The color to use
      * @param cR         The color to use
      */
-    public void drawTextureRegion(Texture texture, float x, float y, float regX, float regY, float regWidth, float regHeight, Color cL, Color cR, float alpha) {
+    public void drawTextureRegion(Texture2D texture, float x, float y, float regX, float regY, float regWidth, float regHeight, Color cL, Color cR, float alpha) {
         /* Vertex positions */
         float x1 = x;
         float y1 = y;
@@ -187,10 +187,15 @@ public class GLRenderer {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
-    public static void draw(VertexArray va, IndexBuffer ib, Shader shader) {
+    public static void draw(VertexArray va, IndexBuffer ib, Shader shader, ITexture... textures) {
         shader.bind();
         va.bind();
         ib.bind();
+        if(textures!=null){
+            for (int i = 0; i < textures.length; i++) {
+                textures[i].bind(i);
+            }
+        }
         glDrawElements(GL_TRIANGLES, ib.getCount(), GL_UNSIGNED_INT, 0);
     }
 

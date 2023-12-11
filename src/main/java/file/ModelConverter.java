@@ -8,7 +8,7 @@ import render.opengl.VertexBufferLayout;
 import java.util.*;
 
 public class ModelConverter {
-    public static VertexArray extractFromObj(ObjComponent obj, boolean includeTexture, boolean includeNormals) {
+    public static VertexArray extractVertexArray(ObjComponent obj, boolean includeTexture, boolean includeNormals) {
         //put all vertices into a hashmap
         Map<ObjComponent.Vertex, Integer> vertexSet = new HashMap<>();
         IntAccum indexAccum = new IntAccum();
@@ -31,6 +31,27 @@ public class ModelConverter {
 
         return va;
     }
+
+    public static float[] extractTriangles(ObjComponent obj, boolean includeTexture, boolean includeNormal){
+        FloatAccum triangles = new FloatAccum();
+        extractTriangles(obj, triangles, includeTexture, includeNormal);
+        return triangles.getData();
+    }
+
+    private static void extractTriangles(ObjComponent obj, FloatAccum triangles, boolean includeTexture, boolean includeNormal){
+        for(ObjComponent.Surface face : obj.faces){
+            if(face.vertices.length != 3) continue;
+            for(ObjComponent.Vertex vertex : face.vertices){
+                triangles.add(obj.pos, vertex.pos*3, 3);
+                if(includeTexture) triangles.add(obj.tex, vertex.tex*2, 2);
+                if(includeNormal) triangles.add(obj.norm, vertex.norm*3, 3);
+            }
+        }
+        for(ObjComponent subObj : obj.subObj){
+            extractTriangles(subObj, triangles, includeTexture, includeNormal);
+        }
+    }
+
     private static float[] assembleVertexBuffer(ObjComponent obj, Map<ObjComponent.Vertex, Integer> vertexSet, boolean includeTexture, boolean includeNormals){
         int len = 3 + (includeTexture ? 2 : 0) + (includeNormals ? 3 : 0);
         float[] vertexBuffer = new float[vertexSet.size() * len];
@@ -57,6 +78,7 @@ public class ModelConverter {
     }
     private static void extractVerticesAndIndexes(Map<ObjComponent.Vertex, Integer> vertexSet, IntAccum indexBuffer, ObjComponent obj){
         for(ObjComponent.Surface face : obj.faces){
+            if(face.vertices.length!=3) continue;
             for(ObjComponent.Vertex v : face.vertices){
                 vertexSet.putIfAbsent(v, vertexSet.size());
                 indexBuffer.add(vertexSet.get(v));

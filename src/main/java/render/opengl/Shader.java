@@ -13,7 +13,9 @@ import java.util.HashMap;
 import static org.lwjgl.opengl.GL20.*;
 
 public class Shader {
-    private int program;
+
+    private static int boundProgram = -1;
+    private final int program;
     private final HashMap<String, Integer> uniformLocationCache = new HashMap<>();
     private static final FloatBuffer matrixBuffer = MemoryUtil.memAllocFloat(16);
 
@@ -26,8 +28,15 @@ public class Shader {
         createShader(vsCode, fsCode);
     }
 
-    public void bind() {
+    public static void bind(Shader program) {
+        glUseProgram(program.program);
+        boundProgram = program.program;
+    }
+
+    public void bind(){
+        if(program==boundProgram) return;
         glUseProgram(program);
+        boundProgram = program;
     }
 
     public void unbind() {
@@ -91,6 +100,11 @@ public class Shader {
         glUniform4f(id, f0, f1, f2, f3);
     }
 
+    public void setUniform3f(String name, float f0, float f1, float f2){
+        int id = glGetUniformLocation(program, name);
+        glUniform3f(id, f0, f1, f2);
+    }
+
     public void setUniform1f(String name, float f) {
         int id = glGetUniformLocation(program, name);
         glUniform1f(id, f);
@@ -105,6 +119,7 @@ public class Shader {
     }
 
     public int getUniformLocation(String name) {
+        bind();
         Integer i = uniformLocationCache.get(name);
         if (i != null) return i;
 

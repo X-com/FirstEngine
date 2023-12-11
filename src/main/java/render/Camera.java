@@ -55,7 +55,7 @@ public class Camera {
 
     //moves in forward direction
     public void moveForward(Vector3f dx){
-        Matrix4f rotate = new Matrix4f().rotateY(-yaw);
+        Matrix4f rotate = new Matrix4f().rotateY(yaw);
         position.add(rotate.transformDirection(dx));
     }
 
@@ -68,9 +68,18 @@ public class Camera {
     }
     public Matrix4f getMvp(){
         return new Matrix4f().perspective(2*Math.atan2(Math.tan(fov/2), aspect), aspect, near, far)
-                .rotateX(pitch)
-                .rotateY(yaw)
+                .rotateX(-pitch)
+                .rotateY(-yaw)
                 .translate(new Vector3f(position).negate());
+    }
+
+    public Matrix4f getView(){
+        return new Matrix4f().rotateX(-pitch)
+                .rotateY(-yaw);
+    }
+
+    public Matrix4f getProjection(){
+        return new Matrix4f().perspective(2*Math.atan2(Math.tan(fov/2), aspect), aspect, near, far);
     }
 
     /**

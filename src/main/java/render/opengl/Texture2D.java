@@ -13,7 +13,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12C.GL_CLAMP_TO_EDGE;
 import static org.lwjgl.opengl.GL13.*;
 
-public class Texture {
+public class Texture2D implements ITexture{
     private int textureId;
 
     /**
@@ -25,11 +25,11 @@ public class Texture {
      */
     private int height;
 
-    public Texture() {
+    public Texture2D() {
         textureId = glGenTextures();
     }
 
-    public Texture(BufferedImage image, boolean gram) {
+    public Texture2D(BufferedImage image, boolean gram) {
         textureId = glGenTextures();
         width = image.getWidth();
         height = image.getHeight();
@@ -54,8 +54,8 @@ public class Texture {
         uploadToGRam(image, intBuffer);
     }
 
-    public static Texture createTexture(int width, int height, ByteBuffer data) {
-        Texture texture = new Texture();
+    public static Texture2D createTexture(int width, int height, ByteBuffer data) {
+        Texture2D texture = new Texture2D();
         texture.setWidth(width);
         texture.setHeight(height);
 
@@ -81,11 +81,13 @@ public class Texture {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
+    @Override
     public void bind() {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textureId);
     }
 
+    @Override
     public void bind(int slot) {
         glActiveTexture(GL_TEXTURE0 + slot);
         glBindTexture(GL_TEXTURE_2D, textureId);

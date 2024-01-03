@@ -1,10 +1,14 @@
 package opengl;
 
+import temp.Loader;
+
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
@@ -29,7 +33,7 @@ public class Texture {
         textureId = glGenTextures();
     }
 
-    public Texture(BufferedImage image, boolean gram) {
+    public Texture(BufferedImage image) {
         textureId = glGenTextures();
         width = image.getWidth();
         height = image.getHeight();
@@ -40,11 +44,22 @@ public class Texture {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
+        if (image.getType() != BufferedImage.TYPE_INT_ARGB) {
+            image = convertToBufferedImage(image, BufferedImage.TYPE_INT_ARGB);
+        }
+
         int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
         pixels = convertPixels(pixels);
         IntBuffer intBuffer = createByteBuffer(pixels);
 
         uploadToGRam(image, intBuffer);
+    }
+
+    public static BufferedImage convertToBufferedImage(BufferedImage image, int imageType) {
+        BufferedImage result = new BufferedImage(image.getWidth(), image.getHeight(), imageType);
+        Graphics2D g2 = result.createGraphics();
+        g2.drawImage(image, null, 0, 0);
+        return result;
     }
 
     public static Texture createTexture(int width, int height, ByteBuffer data) {
@@ -138,7 +153,7 @@ public class Texture {
         glTexParameteri(GL_TEXTURE_2D, name, value);
     }
 
-    public static BufferedImage readImage(String path) {
+    public static BufferedImage readImageFromFile(String path) {
         try {
             BufferedImage image = ImageIO.read(new File(path));
             BufferedImage formatted = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -147,6 +162,19 @@ public class Texture {
         } catch (IOException e) {
             throw new RuntimeException("Unable to read image: \"" + path + "\"");
         }
+    }
+
+    public static Texture readImageFromResources(String fileName) {
+        try {
+            InputStream is = Loader.class.getClassLoader().getResourceAsStream(fileName);
+            BufferedImage img = ImageIO.read(is);
+            return new Texture(img);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Failed to load texture " + fileName + ".png.");
+            System.exit(-1);
+        }
+        return null;
     }
 
     // converts argb to rgba
@@ -167,6 +195,10 @@ public class Texture {
         IntBuffer result = ByteBuffer.allocateDirect(data.length * 4).order(ByteOrder.nativeOrder()).asIntBuffer();
         result.put(data).flip();
         return result;
+    }
+
+    public Integer getTextureId() {
+        return textureId;
     }
 
     public void dispose() {

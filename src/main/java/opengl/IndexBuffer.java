@@ -40,11 +40,11 @@ public class IndexBuffer {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
 
-    public void dispose() {
-        glDeleteBuffers(ibo);
-    }
-
     public int getCount() {
         return count;
+    }
+
+    public void dispose() {
+        glDeleteBuffers(ibo);
     }
 }

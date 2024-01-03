@@ -3,8 +3,12 @@ package opengl;
 import java.nio.FloatBuffer;
 
 import static org.lwjgl.opengl.GL15.*;
+import static org.lwjgl.opengl.GL20.glDisableVertexAttribArray;
+import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
 
 public class VertexBuffer {
+    private int attributeNumber;
+    private int size;
     private int vbo;
     private boolean dynamic;
     private float[] vertices;
@@ -16,7 +20,11 @@ public class VertexBuffer {
         glBufferData(GL_ARRAY_BUFFER, 0, GL_DYNAMIC_COPY);
     }
 
-    public VertexBuffer(float[] vertices) {
+    public VertexBuffer(float[] vertices, int attributeNumber, int size, boolean dynamic) {
+        this.attributeNumber = attributeNumber;
+        this.size = size;
+        this.dynamic = dynamic;
+
         vbo = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
@@ -44,13 +52,13 @@ public class VertexBuffer {
     }
 
     public void updateDynamicVertices() {
-        if(!dynamic) throw new RuntimeException("Editing static vertex buffer.");
+        if (!dynamic) throw new RuntimeException("Editing static vertex buffer.");
         bind();
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_DYNAMIC_COPY);
     }
 
     public float[] getDynamicVertices() {
-        if(!dynamic) throw new RuntimeException("Static vertex buffer.");
+        if (!dynamic) throw new RuntimeException("Static vertex buffer.");
         return vertices;
     }
 
@@ -71,6 +79,26 @@ public class VertexBuffer {
 
     public void unbind() {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
+    public int getAttributeNumber() {
+        return attributeNumber;
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    public boolean getDynamic() {
+        return dynamic;
+    }
+
+    public void bindAttribute() {
+        glEnableVertexAttribArray(attributeNumber);
+    }
+
+    public void unbindAttribute() {
+        glDisableVertexAttribArray(attributeNumber);
     }
 
     public void dispose() {

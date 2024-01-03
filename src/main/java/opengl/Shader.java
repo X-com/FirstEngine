@@ -1,6 +1,7 @@
 package opengl;
 
 import org.joml.Matrix4f;
+import org.lwjgl.opengl.GL20;
 import org.lwjgl.system.MemoryUtil;
 
 import java.io.BufferedReader;
@@ -38,7 +39,7 @@ public class Shader {
         glDeleteProgram(program);
     }
 
-    public static String readShader(String path) {
+    private static String readShader(String path) {
         StringBuilder out = new StringBuilder();
         try {
             InputStream is = Shader.class.getClassLoader().getResourceAsStream(path);
@@ -55,6 +56,10 @@ public class Shader {
         }
 
         return out.toString();
+    }
+
+    public void bindAttribute(int attribute, String variableName) {
+        GL20.glBindAttribLocation(program, attribute, variableName);
     }
 
     private void createShader(String vsCode, String fsCode) {

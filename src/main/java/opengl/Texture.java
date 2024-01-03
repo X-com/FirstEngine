@@ -1,7 +1,5 @@
 package opengl;
 
-import temp.Loader;
-
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -166,7 +164,7 @@ public class Texture {
 
     public static Texture readImageFromResources(String fileName) {
         try {
-            InputStream is = Loader.class.getClassLoader().getResourceAsStream(fileName);
+            InputStream is = Texture.class.getClassLoader().getResourceAsStream(fileName);
             BufferedImage img = ImageIO.read(is);
             return new Texture(img);
         } catch (IOException e) {

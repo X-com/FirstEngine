@@ -1,0 +1,13 @@
+#version 330 core
+
+out vec4 out_Color;
+
+in vec2 texCoords;
+in vec3 colour;
+
+uniform sampler2D modelTexture;
+
+void main(void) {
+    out_Color = texture(modelTexture, texCoords);
+	//out_Color = vec4(colour, 1.0);
+}

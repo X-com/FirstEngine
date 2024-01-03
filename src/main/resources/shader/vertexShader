@@ -1,0 +1,18 @@
+#version 330 core
+
+in vec3 position;
+in vec2 tc;
+in vec3 normal;
+
+out vec2 texCoords;
+out vec3 colour;
+
+uniform mat4 transMat;
+uniform mat4 viewMat;
+uniform mat4 projMat;
+
+void main(void) {
+    texCoords = tc;
+	gl_Position = projMat * viewMat * transMat * vec4(position, 1.0);
+	colour = vec3(position.y + 0.5, 1.0, position.x + 0.5);
+}

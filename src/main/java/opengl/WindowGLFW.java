@@ -1,5 +1,7 @@
 package opengl;
 
+import controller.Keyboard;
+import controller.Mouse;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWVidMode;
@@ -12,10 +14,12 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 public class WindowGLFW {
 
     private long window;
-    private final GLFWKeyCallback keyCallback;
+//    private final GLFWKeyCallback keyCallback;
     private boolean vSynch;
+    public static int WIDTH = 1024;
+    public static int HEIGHT = 720;
 
-    public WindowGLFW(int width, int height, String title, boolean vsync) {
+    public WindowGLFW(String title, boolean vsync) {
         vSynch = vsync;
 
         GLFWErrorCallback.createPrint(System.err).set();
@@ -25,17 +29,30 @@ public class WindowGLFW {
 
         GLCapabilities c = tempWindowForVersionGrab();
         setOpenGLHints(c);
-        createWindow(width, height, title);
-        centerWindowOnScreen(width, height);
+        createWindow(WIDTH, HEIGHT, title);
+        centerWindowOnScreen(WIDTH, HEIGHT);
         setOpenGlContext(window);
 
         if (vsync) {
             glfwSwapInterval(1);
         }
 
-        keyCallback = createKeyMouseCallbacks();
+//        keyCallback = createKeyMouseCallbacks();
+
+        keyMouseCallbacks(window);
 
         glfwShowWindow(window);
+    }
+
+    private void keyMouseCallbacks(long window) {
+        glfwSetCursorPosCallback(window, Mouse::mousePosCallback);
+        glfwSetMouseButtonCallback(window, Mouse::mouseButtonCallback);
+        glfwSetScrollCallback(window, Mouse::mouseScrollCallback);
+        glfwSetKeyCallback(window, Keyboard::keyCallback);
+        glfwSetWindowSizeCallback(window, (w, newWidth, newHeight) -> {
+            WIDTH = newWidth;
+            HEIGHT = newHeight;
+        });
     }
 
     private GLFWKeyCallback createKeyMouseCallbacks() {
@@ -122,6 +139,6 @@ public class WindowGLFW {
 
     public void destroy() {
         glfwDestroyWindow(window);
-        keyCallback.free();
+//        keyCallback.free();
     }
 }

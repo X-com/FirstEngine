@@ -11,6 +11,7 @@ public class Camera {
     private final Vector3f position = new Vector3f(0, 0, 0);
     private final Quaternionf orientation = new Quaternionf(0, 0, 0, 1);
     private final static Vector3f mutableVert = new Vector3f();
+    private final static Quaternionf mutableQuat = new Quaternionf();
     private final static Matrix4f mutableMat = new Matrix4f();
     private final float SENSITIVITY = .3f;
 
@@ -35,7 +36,6 @@ public class Camera {
         }
         if (Keyboard.isKeyPressed(Keyboard.KEY_LEFT_SHIFT)) {
             position.add(orientation.positiveY(mutableVert).negate());
-
         }
 
         if (Keyboard.isKeyPressed(Keyboard.KEY_RIGHT)) {
@@ -57,10 +57,11 @@ public class Camera {
         } else {
             Mouse.clearMove();
         }
+        System.out.println(position);
     }
 
     public Matrix4f getViewMatrix() {
         mutableMat.identity();
-        return mutableMat.translationRotate(position.negate(mutableVert), orientation);
+        return mutableMat.translationRotateScale(position.negate(mutableVert), orientation.conjugate(mutableQuat), 1f);
     }
 }

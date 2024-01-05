@@ -2,11 +2,16 @@ package render;
 
 import entity.Camera;
 import entity.Entity;
+import entity.EntityLoader;
 import opengl.Shader;
 import opengl.WindowGLFW;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
-import entity.Model;
+import model.Model;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Renderer {
 
@@ -17,14 +22,16 @@ public class Renderer {
     private Matrix4f projectionMatrix;
     private Shader shader;
     private static Matrix4f mutableMat;
+    private EntityLoader loadedEntitys;
 
-    public Renderer() {
+    public Renderer(EntityLoader loadedEntitys) {
         shader = new Shader("shader/vertexShader", "shader/fragmentShader");
         createProjectionMatrix();
         shader.bind();
         shader.setUniformMat4f("projMat", projectionMatrix);
         shader.unbind();
         mutableMat = new Matrix4f();
+        this.loadedEntitys = loadedEntitys;
     }
 
     public void prepare() {
@@ -33,19 +40,18 @@ public class Renderer {
         GL11.glClearColor(0.0f, 0.0f, 0.0f, 1);
     }
 
-    public void render(Entity entity, Camera cam) {
+    public void render(Camera cam) {
         shader.bind();
-        Model model = entity.getModel();
-        model.bind();
-
-        Matrix4f transformationMatrix = mutableMat.translationRotateScale(entity.getPosition(), entity.getOrientation(), entity.getScale());
-        shader.setUniformMat4f("transMat", transformationMatrix);
-        Matrix4f viewMatrix = cam.getViewMatrix();
-        shader.setUniformMat4f("viewMat", viewMatrix);
-
-        GL11.glDrawElements(GL11.GL_TRIANGLES, model.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
-        model.unbind();
-
+        shader.setUniformMat4f("viewMat", cam.getViewMatrix());
+        HashMap<Model, ArrayList<Entity>> renderList = loadedEntitys.getRenderList();
+        for (Model model : renderList.keySet()) {
+            model.bind();
+            for (Entity entity : renderList.get(model)) {
+                shader.setUniformMat4f("transMat", mutableMat.translationRotateScale(entity.getPosition(), entity.getOrientation(), entity.getScale()));
+                GL11.glDrawElements(GL11.GL_TRIANGLES, model.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
+            }
+            model.unbind();
+        }
         shader.unbind();
     }
 

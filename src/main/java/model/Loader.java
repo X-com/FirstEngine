@@ -1,18 +1,37 @@
-package util;
+package model;
 
-import entity.Model;
 import opengl.*;
+import util.OBJLoader;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Loader {
 
+
     private static ArrayList<VertexArray> vaos = new ArrayList<>();
     private static ArrayList<Texture> textures = new ArrayList<>();
+    private static HashMap<Integer, Model> models = new HashMap<>();
+
+    public static Model getModel(int id) {
+        Model m = models.get(id);
+        if (m == null) {
+            m = loadModel(ModelEnum.getMeshName(id), ModelEnum.getTextureName(id));
+            models.put(id, m);
+        }
+//        if (m == null) {
+//            throw new RuntimeException("Model with ID: " + id + " missing.");
+//        }
+        return m;
+    }
+
+    public static Model loadModel(String meshName, String textureName) {
+        return new Model(OBJLoader.loadObjModel(meshName), load(textureName));
+    }
 
     public static VertexArray load(float[] verticesArray, float[] textureArray, float[] normalsArray, int[] indicesArray) {
         VertexArray vaMap = new VertexArray();
@@ -38,7 +57,7 @@ public class Loader {
             throw new RuntimeException(e);
         }
 
-        if(read == null) {
+        if (read == null) {
             throw new RuntimeException("Asset can't be loaded " + imagePath);
         }
 

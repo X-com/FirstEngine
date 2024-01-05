@@ -1,5 +1,6 @@
 package util;
 
+import model.Loader;
 import opengl.Shader;
 import opengl.VertexArray;
 import org.joml.Vector2f;

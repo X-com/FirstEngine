@@ -1,4 +1,4 @@
-package entity;
+package model;
 
 import opengl.Texture;
 import opengl.VertexArray;

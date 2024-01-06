@@ -52,8 +52,8 @@ public class Camera {
         }
 
         if (Mouse.mouseButtonDown(Mouse.MOUSE_MIDDLE_BUTTON)) {
-            orientation.rotateAxis((float) Math.toRadians(Mouse.getDx() * SENSITIVITY), new Vector3f(0, 1, 0));
-            orientation.rotateAxis((float) Math.toRadians(Mouse.getDy() * SENSITIVITY), orientation.positiveX(mutableVert));
+            orientation.rotateAxis((float) Math.toRadians(Mouse.getDx() * -SENSITIVITY), new Vector3f(0, 1, 0));
+            orientation.rotateAxis((float) Math.toRadians(Mouse.getDy() * -SENSITIVITY), orientation.positiveX(mutableVert));
         } else {
             Mouse.clearMove();
         }
@@ -62,6 +62,7 @@ public class Camera {
 
     public Matrix4f getViewMatrix() {
         mutableMat.identity();
-        return mutableMat.translationRotateScale(position.negate(mutableVert), orientation.conjugate(mutableQuat), 1f);
+        mutableMat.rotate(orientation).translate(position.negate(mutableVert));
+        return mutableMat;
     }
 }

@@ -14,7 +14,13 @@ project.ext.jomlVersion = "1.10.5"
 
 switch (org.gradle.internal.os.OperatingSystem.current()) {
     case org.gradle.internal.os.OperatingSystem.MAC_OS:
-        project.ext.lwjglNatives = "natives-macos"
+        if (System.getProperty("os.arch").equals("aarch64")) {
+            // ARM architecture (Apple Silicon)
+            project.ext.lwjglNatives = "natives-macos-arm64"
+        } else {
+            // x86_64 architecture
+            project.ext.lwjglNatives = "natives-macos"
+        }
         break
     case org.gradle.internal.os.OperatingSystem.WINDOWS:
         project.ext.lwjglNatives = "natives-windows"

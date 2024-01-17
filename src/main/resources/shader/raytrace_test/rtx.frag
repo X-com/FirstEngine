@@ -5,7 +5,7 @@ uniform mat4 u_view;
 uniform vec3 u_eye;
 uniform int u_numTriangles;
 
-uniform sampler2D texture;//sample with uv coordinates from rayhits
+uniform sampler2D tex;//sample with uv coordinates from rayhits
 uniform samplerBuffer triangles;//geometry for model (x, y, z, u, v, nx, ny, nz)
 
 
@@ -57,7 +57,7 @@ vec3 sampleAt(int i, vec3 o, vec3 d){
     vec2 texUv = uv0*(1-u-v) + u*uv1 + v*uv2;
     texUv.y = 1-texUv.y;
 
-    vec3 albedo = texture2D(texture, texUv).xyz;
+    vec3 albedo = texture(tex, texUv).xyz;
 
     vec3 n0 = fetchNorm(i*3);
     vec3 n1 = fetchNorm(i*3+1);

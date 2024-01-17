@@ -34,12 +34,6 @@ public class Texture2D implements ITexture{
         width = image.getWidth();
         height = image.getHeight();
 
-        if(image.getType() != BufferedImage.TYPE_INT_ARGB){
-            BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-            img.getGraphics().drawImage(image, 0, 0, null);
-            image = img;
-        }
-
         glBindTexture(GL_TEXTURE_2D, textureId);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);

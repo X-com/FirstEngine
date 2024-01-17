@@ -38,6 +38,11 @@ public class RaytraceTest {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        if(img.getType() != BufferedImage.TYPE_INT_ARGB){
+            BufferedImage img2 = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            img2.getGraphics().drawImage(img, 0, 0, null);
+            img = img2;
+        }
 
         window = new WindowGLFW(Config.WIDTH, Config.HEIGHT, "Game", true, 3);
         window.setCursorAnchored(true);
@@ -55,9 +60,10 @@ public class RaytraceTest {
         VertexArray va = fullScreenRect();
 
         Shader shader = new Shader("shader/raytrace_test/rtx.vert", "shader/raytrace_test/rtx.frag");
-        shader.setUniform1i("texture", 0);
+        shader.setUniform1i("tex", 0);
         shader.setUniform1i("triangles", 1);
         shader.setUniform1i("u_numTriangles", triangles.length/24);
+        System.out.println(triangles.length/24);
 
         running = true;
         int count = 0;

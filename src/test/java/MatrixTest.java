@@ -1,9 +1,8 @@
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
-import render.Camera;
 import util.Config;
 
-public class Test {
+public class MatrixTest {
     public static void main(String[] args) {
         //Camera camera = new Camera((float) (60*Math.PI/180), 0.1f, 1000);
 

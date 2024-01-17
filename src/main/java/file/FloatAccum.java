@@ -27,7 +27,7 @@ public class FloatAccum {
         len += count;
     }
 
-    public void add(float[] ar){
+    public void add(float... ar){
         add(ar, 0, ar.length);
     }
 

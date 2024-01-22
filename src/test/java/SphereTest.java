@@ -27,7 +27,7 @@ public class SphereTest {
         window.setCursorAnchored(true);
         running = true;
         VertexArray va = getGridVa(64);
-        Shader shader = new Shader("shader/sphere.vert", "shader/sphere.frag");
+        Shader shader = new Shader("shader/sphere/sphere.vert", "shader/sphere/sphere.frag");
         shader.setUniform1f("u_r", 10);
 
         glEnable(GL_DEPTH_TEST);
@@ -97,7 +97,7 @@ public class SphereTest {
             if(KeyInput.keys[GLFW_KEY_SPACE]){
                 dy += 1;
             }
-            float v = 0.2f;
+            float v = 0.02f;
             camera.moveForward(new Vector3f(dx, dy, dz).mul(v));
         }
     }

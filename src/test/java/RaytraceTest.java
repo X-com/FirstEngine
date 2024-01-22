@@ -63,7 +63,6 @@ public class RaytraceTest {
         shader.setUniform1i("tex", 0);
         shader.setUniform1i("triangles", 1);
         shader.setUniform1i("u_numTriangles", triangles.length/24);
-        System.out.println(triangles.length/24);
 
         running = true;
         int count = 0;
@@ -76,7 +75,6 @@ public class RaytraceTest {
             shader.setUniformMat4f("u_view", camera.getView());
             Vector3f eye = camera.getPosition();
             shader.setUniform3f("u_eye", eye.x, eye.y, eye.z);
-
             GLRenderer.draw(va, va.getIndexBuffer(), shader, textures);
 
             checkAnchor();

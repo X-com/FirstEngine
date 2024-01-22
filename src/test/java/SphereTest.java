@@ -138,7 +138,7 @@ public class SphereTest {
             }
         }
         VertexBuffer vertexBuffer = new VertexBuffer(vbo.getData());
-        IndexBuffer indexBuffer = new IndexBuffer(ibo.getData());
+        IndexBuffer indexBuffer = new IndexBuffer(ibo.getDataCopy());
 
         VertexBufferLayout layout = new VertexBufferLayout();
         layout.addFloat(2);//pos

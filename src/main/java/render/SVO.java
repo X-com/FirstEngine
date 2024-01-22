@@ -1,5 +1,7 @@
 package render;
 
+import java.nio.ByteBuffer;
+
 public class SVO {
     private static final int MASK = Integer.MIN_VALUE;
     private int[] ar;
@@ -9,6 +11,7 @@ public class SVO {
         this.levels = levels;
         end = 8;
         ar = new int[8];
+        ByteBuffer byteBuffer = ByteBuffer.allocate(2);
     }
 
     public int get(int x, int y, int z){
@@ -57,6 +60,37 @@ public class SVO {
         int oldId = ar[currPtr];
         ar[currPtr] = id;
         return oldId;
+    }
+
+    public void clean(){
+        int[] newAr = new int[ar.length];
+        end = clean(newAr, 0, levels-1, 0);
+        ar = newAr;
+    }
+
+    private int clean(int[] newAr, int newPtr, int level, int oldPtr){
+        int end = newPtr+8;
+
+        if(level==0){
+            boolean trim = true;
+            for (int i = 0; i < 8; i++) {
+                int ptr = newAr[newPtr+i] = ar[oldPtr+i];
+                trim &= (ptr == 0);
+            }
+            if(trim) return newPtr;
+            return end;
+        }
+
+        for (int i = 0; i < 8; i++) {
+            int ptr = ar[oldPtr+i];
+            if (ptr != 0) {
+                newAr[newPtr+i] = end;
+                end = clean(newAr, end, level-1, ptr);
+            }
+        }
+
+        if(end==newPtr+8) return newPtr;
+        return end;
     }
 
     private void ensureCapacity(){

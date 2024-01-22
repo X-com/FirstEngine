@@ -15,7 +15,7 @@ public class ModelConverter {
         extractVerticesAndIndexes(vertexSet, indexAccum, obj);
 
         float[] vertices = assembleVertexBuffer(obj, vertexSet, includeTexture, includeNormals);
-        int[] indexes = indexAccum.getData();
+        int[] indexes = indexAccum.getDataCopy();
 
         VertexArray va = new VertexArray();
 

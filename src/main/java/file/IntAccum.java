@@ -8,6 +8,10 @@ public class IntAccum {
         data = new int[8];
     }
 
+    public IntAccum(int initialCapacity){
+        data = new int[initialCapacity];
+    }
+
     public int size(){
         return len;
     }
@@ -38,10 +42,14 @@ public class IntAccum {
         add(ar, 0, ar.length);
     }
 
-    public int[] getData() {
+    public int[] getDataCopy() {
         int[] copy = new int[len];
         System.arraycopy(data, 0, copy, 0, len);
         return copy;
+    }
+
+    public int[] getData() {
+        return data;
     }
 
     public void clear(){
